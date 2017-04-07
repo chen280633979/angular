@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" ng-app="appModule">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
+    <title>Document</title>
+</head>
+<body>
+<!--固定导航-->
+    <div class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a href="#/" class="navbar-brand">驿站图书</a>
+            </div>
+            <ul class="navbar-nav nav">
+                <li><a href="#/">首页</a></li>
+                <li><a href="#/list">图书列表</a></li>
+                <li><a href="#/add">添加图书</a></li>
+            </ul>
+        </div>
+    </div>
+    <!--切换页面-->
+    <div ng-view class="container"></div>
+    <!--引入主页 单页开发-->
+    <script src="node_modules/angular/angular.js"></script>
+    <script src="node_modules/angular-route/angular-route.js"></script>
+    <script src="node_modules/angular-resource/angular-resource.js"></script>
+    <script src="node_modules/jquery/dist/jquery.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+    <script>
+        var app = angular.module('appModule',['ngResource','ngRoute']);
+        //配置路由，使用ngRoute  增加大写的Provider
+        //使用hash值方式 产生历史管理
+        app.factory('Book',function ($resource) {//相当ajax
+            return $resource('/books/:id',null,{//工厂模块，api
+                update:{method:'put'}
+            });
+        });
+        app.config(function ($routeProvider) {
+            //1.路由切换 2 配置路由
+            $routeProvider.when('/',{
+                templateUrl:'tmpl/home.html',
+                controller:'homeCtrl'
+            }).when('/list',{
+                templateUrl:'tmpl/list.html',
+                controller:'listCtrl'
+            }).when('/add',{
+                templateUrl:'tmpl/add.html',
+                controller:'addCtrl'
+            }).otherwise('/');
+        });
+        app.controller('homeCtrl',function ($scope, $sce, Book) {
+            $scope.title = $sce.trustAsHtml('<h1>新书来看看吧</h1>');
+            $(".carousel").carousel({interval:2000})
+        });
+        app.controller('listCtrl',function ($scope, Book) {
+            $scope.books = Book.query();//写入动态数据
+        });
+        app.controller('addCtrl',function ($scope,Book,$location) {
+            $scope.add = function () {
+                Book.save($scope.book).$promise.then(function () {
+                    $location.path('/list')
+                });
+            }
+        });
+
+
+
+    </script>
+</body>
+</html>
